@@ -6,4 +6,4 @@ export const PLUGIN_ID = 'aiFlowDashboards';
 
 export const BASE_NODE_API_PATH = '/api/ai_flow';
 export const INGEST_PIPELINE_PATH = `${BASE_NODE_API_PATH}/ingest_pipeline`;
-export const INDEX_PATH = `${BASE_NODE_API_PATH}/index/{name}`;
+export const INDEX_PATH = `${BASE_NODE_API_PATH}/index`;

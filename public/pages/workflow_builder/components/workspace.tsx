@@ -149,13 +149,38 @@ export function Workspace() {
           <EuiButton
             fill={true}
             onClick={async () => {
-              const resp = await getRouteServices().createIngestPipeline(
+              // TODO: model-related things...
+
+              // Create ingest pipeline
+              const createIngestPipelineResp = await getRouteServices().createIngestPipeline(
                 'test-model-id'
               );
-              getCore().notifications.toasts.addInfo(resp.toString());
+              if (createIngestPipelineResp.statusCode === 200) {
+                getCore().notifications.toasts.addSuccess(
+                  'Ingest pipeline created successfully'
+                );
+              } else {
+                getCore().notifications.toasts.addDanger(
+                  'Ingest pipeline failed to create'
+                );
+              }
+
+              // Create index
+              const createIndexResp = await getRouteServices().createIndex(
+                'test-index-name'
+              );
+              if (createIndexResp.statusCode === 200) {
+                getCore().notifications.toasts.addSuccess(
+                  'Index created successfully'
+                );
+              } else {
+                getCore().notifications.toasts.addDanger(
+                  'Index failed to create'
+                );
+              }
             }}
           >
-            Execute
+            Provision
           </EuiButton>
         </EuiFlexItem>
       </EuiFlexGroup>
