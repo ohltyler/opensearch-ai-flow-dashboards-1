@@ -14,6 +14,8 @@ import {
   AiFlowDashboardsPluginStart,
 } from './types';
 import { PLUGIN_ID } from '../common';
+import { setCore, setRouteServices } from './services';
+import { configureRoutes } from './route_services';
 
 export class AiFlowDashboardsPlugin
   implements Plugin<AiFlowDashboardsPluginSetup, AiFlowDashboardsPluginStart> {
@@ -32,6 +34,9 @@ export class AiFlowDashboardsPlugin
       async mount(params: AppMountParameters) {
         const { renderApp } = await import('./render_app');
         const [coreStart] = await core.getStartServices();
+        const routeServices = configureRoutes(coreStart);
+        setCore(coreStart);
+        setRouteServices(routeServices);
         return renderApp(coreStart, params);
       },
     });

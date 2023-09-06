@@ -14,6 +14,7 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 import '../reactflow-styles.scss';
 import { EuiButton, EuiFlexGroup, EuiFlexItem, EuiTitle } from '@elastic/eui';
+import { getCore, getRouteServices } from '../../../services';
 
 const initialNodes = [
   {
@@ -145,7 +146,17 @@ export function Workspace() {
           style={{ height: 50, maxWidth: 100, marginBottom: 0 }}
           grow={false}
         >
-          <EuiButton fill={true}>Execute</EuiButton>
+          <EuiButton
+            fill={true}
+            onClick={async () => {
+              const resp = await getRouteServices().createIngestPipeline(
+                'test-model-id'
+              );
+              getCore().notifications.toasts.addInfo(resp.toString());
+            }}
+          >
+            Execute
+          </EuiButton>
         </EuiFlexItem>
       </EuiFlexGroup>
     </EuiFlexItem>
