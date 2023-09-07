@@ -5,13 +5,7 @@
 
 import React, { useEffect } from 'react';
 import { ReactFlowProvider } from 'reactflow';
-import {
-  EuiPageHeader,
-  EuiText,
-  EuiPage,
-  EuiFlexGroup,
-  EuiFlexItem,
-} from '@elastic/eui';
+import { EuiPage, EuiFlexGroup, EuiFlexItem } from '@elastic/eui';
 import { CoreServicesContext } from '../../core_services';
 import { CoreStart } from '../../../../../src/core/public';
 import { BREADCRUMBS } from '../../utils';
@@ -25,7 +19,7 @@ export function WorkflowBuilder() {
   useEffect(() => {
     core.chrome.setBreadcrumbs([
       BREADCRUMBS.AI_APPLICATION_BUILDER,
-      BREADCRUMBS.WORKFLOWS,
+      BREADCRUMBS.WORKFLOW_BUILDER,
     ]);
   });
 
