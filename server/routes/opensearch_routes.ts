@@ -18,20 +18,22 @@ import { IngestProcessorContainer } from '@opensearch-project/opensearch/api/typ
 export function registerOpenSearchRoutes(router: IRouter): void {
   router.put(
     {
-      path: `${INGEST_PIPELINE_PATH}/{model_id}`,
+      path: `${INGEST_PIPELINE_PATH}/{ingest_pipeline_name}`,
       validate: {
         params: schema.object({
+          ingest_pipeline_name: schema.string(),
+        }),
+        query: schema.object({
           model_id: schema.string(),
         }),
       },
     },
     async (context, req, res): Promise<IOpenSearchDashboardsResponse<any>> => {
       const client = context.core.opensearch.client.asCurrentUser;
-      const { model_id } = req.params;
-      console.log('model id: ', model_id);
+      const { ingest_pipeline_name } = req.params;
+      const { model_id } = req.query;
       const params = {
-        // the name / id of the pipeline
-        id: 'test-neural-search-pipeline',
+        id: ingest_pipeline_name,
         body: {
           description: 'Semantic search ingest pipeline',
           processors: [
@@ -71,18 +73,21 @@ export function registerOpenSearchRoutes(router: IRouter): void {
         params: schema.object({
           index_name: schema.string(),
         }),
+        query: schema.object({
+          ingest_pipeline_name: schema.string(),
+        }),
       },
     },
     async (context, req, res): Promise<IOpenSearchDashboardsResponse<any>> => {
       const client = context.core.opensearch.client.asCurrentUser;
       const { index_name } = req.params;
-      console.log('index name: ', index_name);
+      const { ingest_pipeline_name } = req.query;
       const params = {
         index: index_name,
         body: {
           settings: {
             [`index.knn`]: true,
-            default_pipeline: 'neural-pipeline',
+            default_pipeline: ingest_pipeline_name,
             number_of_shards: 1,
             number_of_replicas: 1,
           },

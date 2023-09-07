@@ -272,7 +272,8 @@ export function Workspace() {
             onClick={async () => {
               // Create ingest pipeline
               const createIngestPipelineResp = await getRouteServices().createIngestPipeline(
-                'test-model-id'
+                ingestPipelineName,
+                modelId
               );
               if (createIngestPipelineResp.statusCode === 200) {
                 getCore().notifications.toasts.addSuccess(
@@ -286,7 +287,8 @@ export function Workspace() {
 
               // Create index
               const createIndexResp = await getRouteServices().createIndex(
-                'test-index-name'
+                indexName,
+                ingestPipelineName
               );
               if (createIndexResp.statusCode === 200) {
                 getCore().notifications.toasts.addSuccess(
