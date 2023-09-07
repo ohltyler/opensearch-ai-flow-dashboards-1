@@ -38,7 +38,7 @@ const initialNodes = [
     data: { label: 'Semantic Search' },
     type: 'group',
     style: {
-      height: 100,
+      height: 110,
       width: 700,
     },
   },
@@ -47,9 +47,6 @@ const initialNodes = [
     position: { x: 25, y: 25 },
     data: { label: 'Deployed Model ID' },
     type: COMPONENT_TYPES.MODEL,
-    style: {
-      background: 'white',
-    },
     parentNode: 'semantic-search',
     extent: 'parent',
   },
@@ -58,9 +55,6 @@ const initialNodes = [
     position: { x: 262, y: 25 },
     data: { label: 'Ingest Pipeline Name' },
     type: COMPONENT_TYPES.INGEST_PIPELINE,
-    style: {
-      background: 'white',
-    },
     parentNode: 'semantic-search',
     extent: 'parent',
   },
@@ -69,9 +63,6 @@ const initialNodes = [
     position: { x: 500, y: 25 },
     data: { label: 'Index Name' },
     type: COMPONENT_TYPES.INDEX,
-    style: {
-      background: 'white',
-    },
     parentNode: 'semantic-search',
     extent: 'parent',
   },
@@ -89,10 +80,12 @@ const initialEdges = [
     target: 'ingest-pipeline',
     style: {
       strokeWidth: 2,
+      stroke: 'black',
     },
     markerEnd: {
       type: 'arrow',
       strokeWidth: 1,
+      color: 'black',
     },
   },
   {
@@ -101,10 +94,12 @@ const initialEdges = [
     target: 'index',
     style: {
       strokeWidth: 2,
+      stroke: 'black',
     },
     markerEnd: {
       type: 'arrow',
       strokeWidth: 1,
+      color: 'black',
     },
   },
 ] as Edge<any>[];
@@ -269,6 +264,7 @@ export function Workspace() {
         >
           <EuiButton
             fill={true}
+            disabled={!(modelId && ingestPipelineName && indexName)}
             onClick={async () => {
               // Create ingest pipeline
               const createIngestPipelineResp = await getRouteServices().createIngestPipeline(

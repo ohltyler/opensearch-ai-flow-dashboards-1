@@ -4,3 +4,4 @@
  */
 
 export { Workspace } from './workspace';
+export { TestApp } from './test_app';
