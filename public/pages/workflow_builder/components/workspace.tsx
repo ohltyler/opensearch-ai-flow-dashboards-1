@@ -13,15 +13,23 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import '../reactflow-styles.scss';
-import { EuiButton, EuiFlexGroup, EuiFlexItem, EuiTitle } from '@elastic/eui';
+import {
+  EuiButton,
+  EuiFlexGroup,
+  EuiFlexItem,
+  EuiTitle,
+  EuiText,
+} from '@elastic/eui';
 import { getCore, getRouteServices } from '../../../services';
+import { COMPONENT_TYPES } from '../../../utils';
+import { ModelComponent } from '../../../component_types';
 
 const initialNodes = [
   {
-    id: '1',
+    id: 'model',
     position: { x: 100, y: 100 },
-    data: { label: '"What is the best DB for vector search?" (input)' },
-    type: 'default',
+    data: { label: 'Deployed Model ID' },
+    type: COMPONENT_TYPES.MODEL,
     style: {
       background: 'white',
     },
@@ -50,15 +58,32 @@ let id = 0;
 const getId = () => `dndnode_${id++}`;
 
 const initialEdges = [
-  { id: 'e1-2', source: '1', target: '2' },
+  { id: 'e1-2', source: 'model', target: '2' },
   { id: 'e2-3', source: '2', target: '3' },
 ];
 
+// Need to define outside of a component, or use useMemo.
+// See https://reactflow.dev/docs/guides/custom-nodes/#adding-the-node-type
+const componentTypes = { [COMPONENT_TYPES.MODEL]: ModelComponent };
+
 export function Workspace() {
   const workspaceRef = useRef(null);
+  const [modelId, setModelId] = useState<string>('');
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [reactFlowInstance, setReactFlowInstance] = useState(null);
+
+  const extractModelId = () => {
+    nodes.forEach((node) => {
+      if (node.type === COMPONENT_TYPES.MODEL) {
+        setModelId(node.data.model_id);
+      }
+    });
+  };
+
+  const updateInputState = () => {
+    extractModelId();
+  };
 
   const onConnect = useCallback(
     (params) => setEdges((eds) => addEdge(params, eds)),
@@ -137,10 +162,17 @@ export function Workspace() {
             onInit={setReactFlowInstance}
             onDrop={onDrop}
             onDragOver={onDragOver}
+            nodeTypes={componentTypes}
           >
             <Controls />
             <Background />
           </ReactFlow>
+        </EuiFlexItem>
+        <EuiFlexItem grow={false}>
+          <EuiText>
+            <b>Model ID: </b>
+            {modelId}
+          </EuiText>
         </EuiFlexItem>
         <EuiFlexItem
           style={{ height: 50, maxWidth: 100, marginBottom: 0 }}
@@ -149,8 +181,19 @@ export function Workspace() {
           <EuiButton
             fill={true}
             onClick={async () => {
-              // TODO: model-related things...
-
+              updateInputState();
+            }}
+          >
+            Save
+          </EuiButton>
+        </EuiFlexItem>
+        <EuiFlexItem
+          style={{ height: 50, maxWidth: 100, marginBottom: 0 }}
+          grow={false}
+        >
+          <EuiButton
+            fill={true}
+            onClick={async () => {
               // Create ingest pipeline
               const createIngestPipelineResp = await getRouteServices().createIngestPipeline(
                 'test-model-id'
