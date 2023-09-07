@@ -4,3 +4,5 @@
  */
 
 export { ModelComponent } from './model_component';
+export { IngestPipelineComponent } from './ingest_pipeline_component';
+export { IndexComponent } from './index_component';

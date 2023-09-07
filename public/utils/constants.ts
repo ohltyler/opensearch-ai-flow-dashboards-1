@@ -31,4 +31,6 @@ export const BREADCRUMBS = Object.freeze({
 
 export enum COMPONENT_TYPES {
   MODEL = 'model',
+  INGEST_PIPELINE = 'ingest_pipeline',
+  INDEX = 'index',
 }

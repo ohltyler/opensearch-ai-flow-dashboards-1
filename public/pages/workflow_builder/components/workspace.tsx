@@ -4,12 +4,15 @@
  */
 
 import React, { useCallback, useRef, useState } from 'react';
+import 'reactflow/dist/style.css';
 import ReactFlow, {
   Controls,
   Background,
   useNodesState,
   useEdgesState,
   addEdge,
+  Node,
+  Edge,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import '../reactflow-styles.scss';
@@ -22,67 +25,127 @@ import {
 } from '@elastic/eui';
 import { getCore, getRouteServices } from '../../../services';
 import { COMPONENT_TYPES } from '../../../utils';
-import { ModelComponent } from '../../../component_types';
+import {
+  IndexComponent,
+  IngestPipelineComponent,
+  ModelComponent,
+} from '../../../component_types';
 
 const initialNodes = [
   {
+    id: 'semantic-search',
+    position: { x: 40, y: 10 },
+    data: { label: 'Semantic Search' },
+    type: 'group',
+    style: {
+      height: 100,
+      width: 700,
+    },
+  },
+  {
     id: 'model',
-    position: { x: 100, y: 100 },
+    position: { x: 25, y: 25 },
     data: { label: 'Deployed Model ID' },
     type: COMPONENT_TYPES.MODEL,
     style: {
       background: 'white',
     },
+    parentNode: 'semantic-search',
+    extent: 'parent',
   },
   {
-    id: '2',
-    position: { x: 100, y: 200 },
-    data: { label: 'OpenAI Embedding Model (encode input to vector)' },
-    type: 'embeddings',
+    id: 'ingest-pipeline',
+    position: { x: 262, y: 25 },
+    data: { label: 'Ingest Pipeline Name' },
+    type: COMPONENT_TYPES.INGEST_PIPELINE,
     style: {
       background: 'white',
     },
+    parentNode: 'semantic-search',
+    extent: 'parent',
   },
   {
-    id: '3',
-    position: { x: 200, y: 300 },
-    data: { label: 'kNN plugin (similarity search with vector)' },
-    type: 'default',
+    id: 'index',
+    position: { x: 500, y: 25 },
+    data: { label: 'Index Name' },
+    type: COMPONENT_TYPES.INDEX,
     style: {
       background: 'white',
     },
+    parentNode: 'semantic-search',
+    extent: 'parent',
   },
-];
-
-let id = 0;
-const getId = () => `dndnode_${id++}`;
+] as Node<
+  {
+    label: string;
+  },
+  string | undefined
+>[];
 
 const initialEdges = [
-  { id: 'e1-2', source: 'model', target: '2' },
-  { id: 'e2-3', source: '2', target: '3' },
-];
+  {
+    id: 'e1-2',
+    source: 'model',
+    target: 'ingest-pipeline',
+    style: {
+      strokeWidth: 2,
+    },
+    markerEnd: {
+      type: 'arrow',
+      strokeWidth: 1,
+    },
+  },
+  {
+    id: 'e2-3',
+    source: 'ingest-pipeline',
+    target: 'index',
+    style: {
+      strokeWidth: 2,
+    },
+    markerEnd: {
+      type: 'arrow',
+      strokeWidth: 1,
+    },
+  },
+] as Edge<any>[];
 
 // Need to define outside of a component, or use useMemo.
 // See https://reactflow.dev/docs/guides/custom-nodes/#adding-the-node-type
-const componentTypes = { [COMPONENT_TYPES.MODEL]: ModelComponent };
+const componentTypes = {
+  [COMPONENT_TYPES.MODEL]: ModelComponent,
+  [COMPONENT_TYPES.INGEST_PIPELINE]: IngestPipelineComponent,
+  [COMPONENT_TYPES.INDEX]: IndexComponent,
+};
+
+// used in the component for when new nodes are dragged in, generating a new global ID
+let id = 0;
+const getId = () => `dndnode_${id++}`;
 
 export function Workspace() {
   const workspaceRef = useRef(null);
   const [modelId, setModelId] = useState<string>('');
+  const [ingestPipelineName, setIngestPipelineName] = useState<string>('');
+  const [indexName, setIndexName] = useState<string>('');
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [reactFlowInstance, setReactFlowInstance] = useState(null);
 
-  const extractModelId = () => {
+  const updateInputState = () => {
     nodes.forEach((node) => {
-      if (node.type === COMPONENT_TYPES.MODEL) {
-        setModelId(node.data.model_id);
+      switch (node.type) {
+        case COMPONENT_TYPES.MODEL: {
+          setModelId(node.data.model_id);
+          break;
+        }
+        case COMPONENT_TYPES.INGEST_PIPELINE: {
+          setIngestPipelineName(node.data.ingest_pipeline_name);
+          break;
+        }
+        case COMPONENT_TYPES.INDEX: {
+          setIndexName(node.data.index_name);
+        }
       }
     });
-  };
-
-  const updateInputState = () => {
-    extractModelId();
   };
 
   const onConnect = useCallback(
@@ -163,6 +226,7 @@ export function Workspace() {
             onDrop={onDrop}
             onDragOver={onDragOver}
             nodeTypes={componentTypes}
+            fitView
           >
             <Controls />
             <Background />
@@ -172,6 +236,18 @@ export function Workspace() {
           <EuiText>
             <b>Model ID: </b>
             {modelId}
+          </EuiText>
+        </EuiFlexItem>
+        <EuiFlexItem grow={false}>
+          <EuiText>
+            <b>Ingest Pipeline Name: </b>
+            {ingestPipelineName}
+          </EuiText>
+        </EuiFlexItem>
+        <EuiFlexItem grow={false}>
+          <EuiText>
+            <b>Index Name: </b>
+            {indexName}
           </EuiText>
         </EuiFlexItem>
         <EuiFlexItem

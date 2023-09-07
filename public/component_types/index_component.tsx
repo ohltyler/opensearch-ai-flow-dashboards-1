@@ -9,20 +9,20 @@ import { Handle, Position } from 'reactflow';
 
 import './model_component.scss';
 
-export function ModelComponent({ data }) {
-  const onModelIdChange = useCallback((event) => {
-    data.model_id = event.target.value;
+export function IndexComponent({ data }) {
+  const onIndexNameChange = useCallback((event) => {
+    data.index_name = event.target.value;
   }, []);
 
   return (
     <div className="model-component">
       <div>
         <Handle type="target" position={Position.Left} isConnectable={true} />
-        <EuiText size="s">Model ID:</EuiText>
+        <EuiText size="s">Index Name :</EuiText>
         <input
           id="text"
           name="text"
-          onChange={onModelIdChange}
+          onChange={onIndexNameChange}
           className="nodrag"
         />
         <Handle type="source" position={Position.Right} isConnectable={true} />
