@@ -4,7 +4,12 @@
  */
 
 import { CoreStart, HttpFetchError } from '../../../src/core/public';
-import { INDEX_PATH, INGEST_PIPELINE_PATH } from '../common';
+import {
+  INDEX_PATH,
+  INGEST_PIPELINE_PATH,
+  REINDEX_PATH,
+  SEARCH_PATH,
+} from '../common';
 
 export interface RouteServices {
   createIngestPipeline: (
@@ -15,6 +20,11 @@ export interface RouteServices {
     indexName: string,
     ingestPipelineName: string
   ) => Promise<any | HttpFetchError>;
+  reindex: (
+    sourceIndex: string,
+    destIndex: string
+  ) => Promise<any | HttpFetchError>;
+  searchIndex: (indexName: string, body: {}) => Promise<any | HttpFetchError>;
 }
 
 export function configureRoutes(core: CoreStart): RouteServices {
@@ -46,6 +56,38 @@ export function configureRoutes(core: CoreStart): RouteServices {
             query: {
               ingest_pipeline_name: ingestPipelineName,
             },
+          }
+        );
+        return response;
+      } catch (e: any) {
+        console.log('e: ', e);
+        return e as HttpFetchError;
+      }
+    },
+    reindex: async (sourceIndex: string, destIndex: string) => {
+      try {
+        const response = await core.http.post<{ respString: string }>(
+          REINDEX_PATH,
+          {
+            body: JSON.stringify({
+              source_index: sourceIndex,
+              dest_index: destIndex,
+            }),
+          }
+        );
+        return response;
+      } catch (e: any) {
+        console.log('e: ', e);
+        return e as HttpFetchError;
+      }
+    },
+
+    searchIndex: async (indexName: string, body: {}) => {
+      try {
+        const response = await core.http.post<{ respString: string }>(
+          `${SEARCH_PATH}/${indexName}`,
+          {
+            body: JSON.stringify(body),
           }
         );
         return response;

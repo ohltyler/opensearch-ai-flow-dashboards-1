@@ -295,6 +295,21 @@ export function Workspace() {
                   'Index failed to create'
                 );
               }
+
+              // Reindex solarsystem data into the new vectordb index
+              const reindexResp = await getRouteServices().reindex(
+                'solarsystem',
+                indexName
+              );
+              if (reindexResp.statusCode === 200) {
+                getCore().notifications.toasts.addSuccess(
+                  'Reindex operation completed successfully'
+                );
+              } else {
+                getCore().notifications.toasts.addDanger(
+                  'Reindex operation failed'
+                );
+              }
             }}
           >
             Provision

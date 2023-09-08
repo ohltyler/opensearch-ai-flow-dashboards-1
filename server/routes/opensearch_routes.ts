@@ -8,10 +8,17 @@ import {
   IRouter,
   IOpenSearchDashboardsResponse,
 } from '../../../../src/core/server';
-import { INGEST_PIPELINE_PATH, INDEX_PATH } from '../../common';
+import {
+  INGEST_PIPELINE_PATH,
+  INDEX_PATH,
+  REINDEX_PATH,
+  SEARCH_PATH,
+} from '../../common';
 import {
   IndicesCreateRequest,
   IngestPutPipelineRequest,
+  ReindexRequest,
+  SearchRequest,
 } from '@opensearch-project/opensearch/api/types';
 import { IngestProcessorContainer } from '@opensearch-project/opensearch/api/types';
 
@@ -32,6 +39,7 @@ export function registerOpenSearchRoutes(router: IRouter): void {
       const client = context.core.opensearch.client.asCurrentUser;
       const { ingest_pipeline_name } = req.params;
       const { model_id } = req.query;
+      // TODO: remove hardcoded field map
       const params = {
         id: ingest_pipeline_name,
         body: {
@@ -82,6 +90,7 @@ export function registerOpenSearchRoutes(router: IRouter): void {
       const client = context.core.opensearch.client.asCurrentUser;
       const { index_name } = req.params;
       const { ingest_pipeline_name } = req.query;
+      // TODO: remove hardcoded index settings
       const params = {
         index: index_name,
         body: {
@@ -98,8 +107,8 @@ export function registerOpenSearchRoutes(router: IRouter): void {
                 dimension: 384,
                 method: {
                   name: 'hnsw',
-                  engine: 'nmslib',
-                  space_type: 'cosinesimil',
+                  engine: 'lucene',
+                  space_type: 'l2',
                 },
               },
               name_v: {
@@ -107,8 +116,8 @@ export function registerOpenSearchRoutes(router: IRouter): void {
                 dimension: 384,
                 method: {
                   name: 'hnsw',
-                  engine: 'nmslib',
-                  space_type: 'cosinesimil',
+                  engine: 'lucene',
+                  space_type: 'l2',
                 },
               },
               description: {
@@ -124,6 +133,84 @@ export function registerOpenSearchRoutes(router: IRouter): void {
 
       try {
         const response = await client.indices.create(params);
+        return res.ok({ body: response });
+      } catch (err: any) {
+        return res.customError({
+          statusCode: err.statusCode || 500,
+          body: {
+            message: err.message,
+            attributes: {
+              error: err.body?.error || err.message,
+            },
+          },
+        });
+      }
+    }
+  );
+
+  router.post(
+    {
+      path: REINDEX_PATH,
+      validate: {
+        body: schema.object({
+          source_index: schema.string(),
+          dest_index: schema.string(),
+        }),
+      },
+    },
+    async (context, req, res): Promise<IOpenSearchDashboardsResponse<any>> => {
+      const client = context.core.opensearch.client.asCurrentUser;
+      const { source_index, dest_index } = req.body;
+      const params = {
+        body: {
+          source: {
+            index: source_index,
+          },
+          dest: {
+            index: dest_index,
+          },
+        },
+      } as ReindexRequest;
+
+      try {
+        const response = await client.reindex(params);
+        return res.ok({ body: response });
+      } catch (err: any) {
+        return res.customError({
+          statusCode: err.statusCode || 500,
+          body: {
+            message: err.message,
+            attributes: {
+              error: err.body?.error || err.message,
+            },
+          },
+        });
+      }
+    }
+  );
+
+  router.post(
+    {
+      path: `${SEARCH_PATH}/{index_name}`,
+      validate: {
+        params: schema.object({
+          index_name: schema.string(),
+        }),
+        body: schema.any(),
+      },
+    },
+    async (context, req, res): Promise<IOpenSearchDashboardsResponse<any>> => {
+      const client = context.core.opensearch.client.asCurrentUser;
+      const { index_name } = req.params;
+      const body = req.body;
+
+      const params = {
+        index: index_name,
+        body: body,
+      } as SearchRequest;
+
+      try {
+        const response = await client.search(params);
         return res.ok({ body: response });
       } catch (err: any) {
         return res.customError({
