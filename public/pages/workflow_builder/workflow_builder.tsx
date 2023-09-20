@@ -15,6 +15,9 @@ import {
 import { BREADCRUMBS } from '../../utils';
 import { getCore } from '../../services';
 
+//TODO: remove. just adding to test import for now
+import { Handle, Position } from 'reactflow';
+
 export function WorkflowBuilder() {
   useEffect(() => {
     getCore().chrome.setBreadcrumbs([
@@ -31,6 +34,12 @@ export function WorkflowBuilder() {
             <EuiTitle size="l">
               <h1>Workflow Builder</h1>
             </EuiTitle>
+            {/** TODO: remove. just adding to test import for now */}
+            <Handle
+              type="target"
+              position={Position.Left}
+              isConnectable={true}
+            />
           </EuiFlexItem>
         </EuiFlexGroup>
       </EuiPageHeader>
