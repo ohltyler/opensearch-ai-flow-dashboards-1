@@ -4,6 +4,7 @@
  */
 
 import React, { useRef, useContext, useCallback, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import ReactFlow, {
   Controls,
   Background,
@@ -12,7 +13,7 @@ import ReactFlow, {
   addEdge,
 } from 'reactflow';
 import { EuiFlexItem, EuiFlexGroup } from '@elastic/eui';
-import { rfContext } from '../../../store';
+import { rfContext, setDirty } from '../../../store';
 import { IComponent, Workflow } from '../../../../common';
 import { generateId } from '../../../utils';
 import { getCore } from '../../../services';
@@ -30,6 +31,7 @@ const nodeTypes = { customComponent: WorkspaceComponent };
 // TODO: probably have custom edge types here too
 
 export function Workspace(props: WorkspaceProps) {
+  const dispatch = useDispatch();
   const reactFlowWrapper = useRef(null);
   const { reactFlowInstance, setReactFlowInstance } = useContext(rfContext);
 
@@ -38,11 +40,9 @@ export function Workspace(props: WorkspaceProps) {
 
   const onConnect = useCallback(
     (params) => {
+      dispatch(setDirty());
       setEdges((eds) => addEdge(params, eds));
     },
-    // TODO: add customized logic to prevent connections based on the node's
-    // allowed inputs. If allowed, update that node state as well with the added
-    // connection details.
     [setEdges]
   );
 
@@ -87,6 +87,7 @@ export function Workspace(props: WorkspaceProps) {
       };
 
       setNodes((nds) => nds.concat(newNode));
+      dispatch(setDirty());
     },
     [reactFlowInstance]
   );
@@ -96,9 +97,9 @@ export function Workspace(props: WorkspaceProps) {
   useEffect(() => {
     const workflow = props.workflow;
     if (workflow) {
-      if (workflow.reactFlowState) {
-        setNodes(workflow.reactFlowState.nodes);
-        setEdges(workflow.reactFlowState.edges);
+      if (workflow.workspaceFlowState) {
+        setNodes(workflow.workspaceFlowState.nodes);
+        setEdges(workflow.workspaceFlowState.edges);
       } else {
         getCore().notifications.toasts.addWarning(
           `There is no configured UI flow for workflow: ${workflow.name}`
