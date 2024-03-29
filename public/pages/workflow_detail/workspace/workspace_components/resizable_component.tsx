@@ -28,10 +28,8 @@ export function ResizableComponent(props: ResizableComponentProps) {
       <EuiTitle size="l">
         <h2 style={{ marginLeft: '8px' }}>{props.data.label}</h2>
       </EuiTitle>
-      {
-        // TODO: re-enable resizing
-      }
-      {/* <NodeResizeControl
+
+      <NodeResizeControl
         className="resizable-control"
         minWidth={300}
         minHeight={250}
@@ -43,32 +41,32 @@ export function ResizableComponent(props: ResizableComponentProps) {
         >
           <ResizeIcon />
         </div>
-      </NodeResizeControl> */}
+      </NodeResizeControl>
     </>
   );
 }
 
-// // The 'expand' icon provided by EUI is oriented in a way that doesn't make sense.
-// // Hence, creating our own
-// function ResizeIcon() {
-//   return (
-//     <svg
-//       xmlns="http://www.w3.org/2000/svg"
-//       width="20"
-//       height="20"
-//       viewBox="0 0 24 24"
-//       strokeWidth="2"
-//       stroke="#ff0071"
-//       fill="none"
-//       strokeLinecap="round"
-//       strokeLinejoin="round"
-//       style={{ position: 'absolute', right: 5, bottom: 5 }}
-//     >
-//       <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-//       <polyline points="16 20 20 20 20 16" />
-//       <line x1="14" y1="14" x2="20" y2="20" />
-//       <polyline points="8 4 4 4 4 8" />
-//       <line x1="4" y1="4" x2="10" y2="10" />
-//     </svg>
-//   );
-// }
+// The 'expand' icon provided by EUI is oriented in a way that doesn't make sense.
+// Hence, creating our own
+function ResizeIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      strokeWidth="2"
+      stroke="#ff0071"
+      fill="none"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={{ position: 'absolute', right: 5, bottom: 5 }}
+    >
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <polyline points="16 20 20 20 20 16" />
+      <line x1="14" y1="14" x2="20" y2="20" />
+      <polyline points="8 4 4 4 4 8" />
+      <line x1="4" y1="4" x2="10" y2="10" />
+    </svg>
+  );
+}
