@@ -13,6 +13,7 @@ import {
 } from '@elastic/eui';
 import { WorkspaceFormValues, customStringify } from '../../../../../common';
 import { camelCaseToTitleString } from '../../../../utils';
+import { CodeEditor } from '../../../../../../../src/plugins/opensearch_dashboards_react/public';
 
 interface JsonFieldProps {
   fieldPath: string; // the full path in string-form to the field (e.g., 'ingest.enrich.processors.text_embedding_processor.inputField')
@@ -71,7 +72,39 @@ export function JsonField(props: JsonFieldProps) {
                 : false
             }
           >
-            <EuiCodeEditor
+            <CodeEditor
+              height={100}
+              languageId="json"
+              value="{}"
+              onChange={() => {}}
+              //editorDidMount={editorDidMount}
+              options={{
+                minimap: { enabled: false },
+                scrollBeyondLastLine: false,
+                fontSize: 14,
+                fontFamily: 'Roboto Mono',
+                lineNumbers: 'on',
+                folding: true,
+                wordWrap: 'on',
+                wrappingIndent: 'same',
+                lineDecorationsWidth: 0,
+                lineNumbersMinChars: 2,
+                wordBasedSuggestions: false,
+              }}
+              // suggestionProvider={{
+              //   provideCompletionItems,
+              // }}
+              // languageConfiguration={{
+              //   autoClosingPairs: [
+              //     { open: '(', close: ')' },
+              //     { open: '[', close: ']' },
+              //     { open: '{', close: '}' },
+              //     { open: '"', close: '"' },
+              //     { open: "'", close: "'" },
+              //   ],
+              // }}
+            />
+            {/* <EuiCodeEditor
               mode="json"
               theme="textmate"
               width="100%"
@@ -102,7 +135,7 @@ export function JsonField(props: JsonFieldProps) {
               }}
               aria-label="Code Editor"
               tabSize={2}
-            />
+            /> */}
           </EuiCompressedFormRow>
         );
       }}
