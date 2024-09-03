@@ -7,6 +7,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { BrowserRouter as Router, Route } from 'react-router-dom';
 import { Provider } from 'react-redux';
+import { OpenSearchDashboardsContextProvider } from '../../../src/plugins/opensearch_dashboards_react/public';
 import { AppMountParameters, CoreStart } from '../../../src/core/public';
 import { FlowFrameworkDashboardsApp } from './app';
 import { store } from './store';
@@ -25,15 +26,17 @@ export const renderApp = (
   ReactDOM.render(
     <Provider store={store}>
       <Router basename={params.appBasePath + '#/'}>
-        <Route
-          render={(props) => (
-            <FlowFrameworkDashboardsApp
-              setHeaderActionMenu={params.setHeaderActionMenu}
-              hideInAppSideNavBar={hideInAppSideNavBar}
-              {...props}
-            />
-          )}
-        />
+        <OpenSearchDashboardsContextProvider services={coreStart}>
+          <Route
+            render={(props) => (
+              <FlowFrameworkDashboardsApp
+                setHeaderActionMenu={params.setHeaderActionMenu}
+                hideInAppSideNavBar={hideInAppSideNavBar}
+                {...props}
+              />
+            )}
+          />
+        </OpenSearchDashboardsContextProvider>
       </Router>
     </Provider>,
     params.element

@@ -5,7 +5,6 @@
   "server": true,
   "ui": true,
   "requiredBundles": [
-    "opensearchDashboardsUtils",
     "opensearchDashboardsReact"
   ],
   "requiredPlugins": [
