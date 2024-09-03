@@ -5,15 +5,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { Field, FieldProps, getIn, useFormikContext } from 'formik';
-import {
-  EuiCodeEditor,
-  EuiCompressedFormRow,
-  EuiLink,
-  EuiText,
-} from '@elastic/eui';
+import { CodeEditor } from '../../../../../../../src/plugins/opensearch_dashboards_react/public';
+import { EuiCompressedFormRow, EuiLink, EuiText } from '@elastic/eui';
 import { WorkspaceFormValues, customStringify } from '../../../../../common';
 import { camelCaseToTitleString } from '../../../../utils';
-import { CodeEditor } from '../../../../../../../src/plugins/opensearch_dashboards_react/public';
 
 interface JsonFieldProps {
   fieldPath: string; // the full path in string-form to the field (e.g., 'ingest.enrich.processors.text_embedding_processor.inputField')
@@ -72,47 +67,8 @@ export function JsonField(props: JsonFieldProps) {
                 : false
             }
           >
-            <CodeEditor
-              height={100}
-              languageId="json"
-              value="{}"
-              onChange={() => {}}
-              //editorDidMount={editorDidMount}
-              options={{
-                minimap: { enabled: false },
-                scrollBeyondLastLine: false,
-                fontSize: 14,
-                fontFamily: 'Roboto Mono',
-                lineNumbers: 'on',
-                folding: true,
-                wordWrap: 'on',
-                wrappingIndent: 'same',
-                lineDecorationsWidth: 0,
-                lineNumbersMinChars: 2,
-                wordBasedSuggestions: false,
-              }}
-              // suggestionProvider={{
-              //   provideCompletionItems,
-              // }}
-              // languageConfiguration={{
-              //   autoClosingPairs: [
-              //     { open: '(', close: ')' },
-              //     { open: '[', close: ']' },
-              //     { open: '{', close: '}' },
-              //     { open: '"', close: '"' },
-              //     { open: "'", close: "'" },
-              //   ],
-              // }}
-            />
-            {/* <EuiCodeEditor
-              mode="json"
-              theme="textmate"
-              width="100%"
-              height={props.editorHeight || '15vh'}
-              value={jsonStr}
-              onChange={(input) => {
-                setJsonStr(input);
-              }}
+            <div
+              className="defaultEditor"
               onBlur={() => {
                 try {
                   form.setFieldValue(
@@ -125,17 +81,44 @@ export function JsonField(props: JsonFieldProps) {
                   form.setFieldTouched(field.name);
                 }
               }}
-              readOnly={props.readOnly || false}
-              setOptions={{
-                fontSize: '14px',
-                useWorker: validate,
-                highlightActiveLine: !props.readOnly,
-                highlightSelectedWord: !props.readOnly,
-                highlightGutterLine: !props.readOnly,
-              }}
-              aria-label="Code Editor"
-              tabSize={2}
-            /> */}
+            >
+              <CodeEditor
+                height={props.editorHeight || '15vh'}
+                languageId="json"
+                value={jsonStr}
+                onChange={(input) => {
+                  setJsonStr(input);
+                }}
+                options={{
+                  language: 'json',
+                  minimap: { enabled: false },
+                  scrollBeyondLastLine: false,
+                  fontSize: 14,
+                  fontFamily: 'Roboto Mono',
+                  lineNumbers: 'on',
+                  folding: true,
+                  wordWrap: 'on',
+                  wrappingIndent: 'same',
+                  lineDecorationsWidth: 0,
+                  lineNumbersMinChars: 2,
+                  wordBasedSuggestions: false,
+                  readOnly: props.readOnly || false,
+                  highlightActiveIndentGuide: false,
+                  selectionHighlight: false,
+                  automaticLayout: false,
+                }}
+                languageConfiguration={{
+                  autoClosingPairs: [
+                    { open: '(', close: ')' },
+                    { open: '[', close: ']' },
+                    { open: '{', close: '}' },
+                    // TODO: double/single quotes not working.
+                    // { open: '"', close: '"', notIn: ['string', 'comment'] },
+                    //{ open: ''', close: ''' },
+                  ],
+                }}
+              />
+            </div>
           </EuiCompressedFormRow>
         );
       }}

@@ -4,7 +4,7 @@
  */
 
 import moment from 'moment';
-import { DATE_FORMAT_PATTERN } from './';
+import { DATE_FORMAT_PATTERN, TAB_SIZE } from './';
 import { isEmpty } from 'lodash';
 
 export function toFormattedDate(timestampMillis: number): String {
@@ -37,5 +37,5 @@ export function getCharacterLimitedString(
 }
 
 export function customStringify(jsonObj: {}): string {
-  return JSON.stringify(jsonObj, undefined, 2);
+  return JSON.stringify(jsonObj, undefined, TAB_SIZE);
 }

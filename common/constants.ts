@@ -409,6 +409,7 @@ export const MAX_JSON_STRING_LENGTH = 10000;
 export const MAX_WORKFLOW_NAME_TO_DISPLAY = 40;
 export const WORKFLOW_NAME_REGEXP = RegExp('^[a-zA-Z0-9_-]*$');
 export const EMPTY_MAP_ENTRY = { key: '', value: '' } as MapEntry;
+export const TAB_SIZE = 4;
 
 export enum PROCESSOR_CONTEXT {
   INGEST = 'ingest',
