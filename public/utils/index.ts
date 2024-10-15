@@ -11,3 +11,4 @@ export * from './config_to_workspace_utils';
 export * from './config_to_schema_utils';
 export * from './form_to_config_utils';
 export * from './form_to_pipeline_utils';
+export * from './json_to_json_transform_utils';

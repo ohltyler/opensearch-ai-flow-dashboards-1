@@ -28,6 +28,8 @@ import {
   EuiIconTip,
   EuiSwitch,
   EuiCallOut,
+  EuiFilterGroup,
+  EuiSmallFilterButton,
 } from '@elastic/eui';
 import {
   IConfigField,
@@ -48,6 +50,7 @@ import {
 import {
   formikToPartialPipeline,
   generateTransform,
+  automaticallyGenerateTransforms,
   prepareDocsForSimulate,
   unwrapTransformedDocs,
 } from '../../../../../utils';
@@ -80,13 +83,20 @@ interface InputTransformModalProps {
 // the max number of input docs we use to display & test transforms with (search response hits)
 const MAX_INPUT_DOCS = 10;
 
+enum TRANSFORM_OPTIONS {
+  MANUAL = 'manual',
+  AUTOMATIC = 'automatic',
+}
+
 /**
  * A modal to configure advanced JSON-to-JSON transforms into a model's expected input
  */
 export function InputTransformModal(props: InputTransformModalProps) {
   const dispatch = useAppDispatch();
   const dataSourceId = getDataSourceId();
-  const { values } = useFormikContext<WorkflowFormValues>();
+  const { values, setFieldValue, setFieldTouched } = useFormikContext<
+    WorkflowFormValues
+  >();
 
   // various prompt states
   const [viewPromptDetails, setViewPromptDetails] = useState<boolean>(false);
@@ -102,6 +112,13 @@ export function InputTransformModal(props: InputTransformModalProps) {
   // source input / transformed input state
   const [sourceInput, setSourceInput] = useState<string>('{}');
   const [transformedInput, setTransformedInput] = useState<string>('{}');
+
+  // manual/automatic transform state
+  const [
+    selectedGenerateTransformOption,
+    setSelectedGenerateTransformOption,
+  ] = useState<TRANSFORM_OPTIONS>(TRANSFORM_OPTIONS.MANUAL);
+  const [desiredInput, setDesiredInput] = useState<string>('');
 
   // get some current form values
   const map = getIn(values, props.inputMapFieldPath) as MapArrayFormValue;
@@ -438,6 +455,92 @@ export function InputTransformModal(props: InputTransformModalProps) {
             <>
               <EuiText>Define transform</EuiText>
               <EuiSpacer size="s" />
+              <EuiFilterGroup>
+                <EuiSmallFilterButton
+                  grow={false}
+                  id={TRANSFORM_OPTIONS.MANUAL}
+                  hasActiveFilters={
+                    selectedGenerateTransformOption === TRANSFORM_OPTIONS.MANUAL
+                  }
+                  onClick={() =>
+                    setSelectedGenerateTransformOption(TRANSFORM_OPTIONS.MANUAL)
+                  }
+                >
+                  Manual
+                </EuiSmallFilterButton>
+                <EuiSmallFilterButton
+                  grow={false}
+                  id={TRANSFORM_OPTIONS.AUTOMATIC}
+                  hasActiveFilters={
+                    selectedGenerateTransformOption ===
+                    TRANSFORM_OPTIONS.AUTOMATIC
+                  }
+                  onClick={() =>
+                    setSelectedGenerateTransformOption(
+                      TRANSFORM_OPTIONS.AUTOMATIC
+                    )
+                  }
+                >
+                  Automatic
+                </EuiSmallFilterButton>
+              </EuiFilterGroup>
+              <EuiSpacer size="s" />
+              {selectedGenerateTransformOption ===
+                TRANSFORM_OPTIONS.AUTOMATIC && (
+                <>
+                  <EuiText size="s">
+                    Enter your desired transformed input and click 'Generate'.
+                    The input should be valid based on the model input schema.
+                  </EuiText>
+
+                  <EuiSpacer size="s" />
+                  <EuiCodeEditor
+                    mode="json"
+                    theme="textmate"
+                    width="100%"
+                    height="15vh"
+                    value={desiredInput}
+                    readOnly={false}
+                    setOptions={{
+                      fontSize: '12px',
+                      autoScrollEditorIntoView: true,
+                      showLineNumbers: false,
+                      showGutter: false,
+                      showPrintMargin: false,
+                      wrap: true,
+                    }}
+                    tabSize={2}
+                    onChange={(value) => setDesiredInput(value)}
+                    onBlur={(e) => {
+                      let updatedDesiredInput = {} as any;
+                      try {
+                        updatedDesiredInput = JSON.parse(desiredInput);
+                        setDesiredInput(customStringify(updatedDesiredInput));
+                      } catch {}
+                    }}
+                  />
+                  <EuiSpacer size="s" />
+                  <EuiSmallButton
+                    style={{ width: '100px' }}
+                    onClick={() => {
+                      // nesting the whole response in an outer array, as we assume
+                      // only a single prediction.
+                      // TODO: support multi-prediction
+                      const generatedInputMap = [
+                        automaticallyGenerateTransforms(
+                          sourceInput,
+                          desiredInput
+                        ),
+                      ];
+                      setFieldValue(props.inputMapFieldPath, generatedInputMap);
+                      setFieldTouched(props.inputMapFieldPath, true);
+                    }}
+                  >
+                    Generate
+                  </EuiSmallButton>
+                  <EuiSpacer size="s" />
+                </>
+              )}
               <MapArrayField
                 field={props.inputMapField}
                 fieldPath={props.inputMapFieldPath}
