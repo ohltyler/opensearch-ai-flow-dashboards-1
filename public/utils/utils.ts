@@ -684,15 +684,15 @@ export function getEmbeddingModelDimensions(
   // some APIs allow specifically setting the dimensions at runtime,
   // so we check for that first.
   if (connector?.parameters?.dimensions !== undefined) {
-    return connector.parameters?.dimensions;
-  } else if (connector.parameters?.model !== undefined) {
+    return connector?.parameters?.dimensions;
+  } else if (connector?.parameters?.model !== undefined) {
     return (
       // @ts-ignore
-      COHERE_CONFIGS[connector.parameters?.model]?.dimension ||
+      COHERE_CONFIGS[connector?.parameters?.model]?.dimension ||
       // @ts-ignore
-      OPENAI_CONFIGS[connector.parameters?.model]?.dimension ||
+      OPENAI_CONFIGS[connector?.parameters?.model]?.dimension ||
       // @ts-ignore
-      BEDROCK_CONFIGS[connector.parameters?.model]?.dimension
+      BEDROCK_CONFIGS[connector?.parameters?.model]?.dimension
     );
   } else {
     return undefined;
