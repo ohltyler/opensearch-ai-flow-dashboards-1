@@ -19,6 +19,7 @@ import {
   CAT_INDICES_NODE_API_PATH,
   GET_INDEX_NODE_API_PATH,
   GET_MAPPINGS_NODE_API_PATH,
+  GET_PARSED_QUERY_NODE_API_PATH,
   INGEST_NODE_API_PATH,
   INGEST_PIPELINE_NODE_API_PATH,
   Index,
@@ -30,11 +31,13 @@ import {
   SEARCH_INDEX_NODE_API_PATH,
   SEARCH_PIPELINE_NODE_API_PATH,
   SIMULATE_PIPELINE_NODE_API_PATH,
+  SearchPipelineConfig,
   SearchPipelineResponse,
+  SearchResponseVerbose,
   SimulateIngestPipelineDoc,
   SimulateIngestPipelineResponse,
 } from '../../common';
-import { generateCustomError } from './helpers';
+import { generateCustomError, getParsedQueryFromResponse } from './helpers';
 import { getClientBasedOnDataSource } from '../utils/helpers';
 
 /**
@@ -179,6 +182,31 @@ export function registerOpenSearchRoutes(
       },
     },
     opensearchRoutesService.searchIndex
+  );
+  router.post(
+    {
+      path: `${GET_PARSED_QUERY_NODE_API_PATH}/{index}`,
+      validate: {
+        params: schema.object({
+          index: schema.string(),
+        }),
+        body: schema.any(),
+      },
+    },
+    opensearchRoutesService.getParsedQuery
+  );
+  router.post(
+    {
+      path: `${BASE_NODE_API_PATH}/{data_source_id}/opensearch/getParsedQuery/{index}`,
+      validate: {
+        params: schema.object({
+          index: schema.string(),
+          data_source_id: schema.string(),
+        }),
+        body: schema.any(),
+      },
+    },
+    opensearchRoutesService.getParsedQuery
   );
   router.put(
     {
@@ -518,6 +546,55 @@ export class OpenSearchRoutesService {
       }
 
       return res.ok({ body: response });
+    } catch (err: any) {
+      return generateCustomError(res, err);
+    }
+  };
+
+  getParsedQuery = async (
+    context: RequestHandlerContext,
+    req: OpenSearchDashboardsRequest,
+    res: OpenSearchDashboardsResponseFactory
+  ): Promise<IOpenSearchDashboardsResponse<any>> => {
+    const { index, data_source_id = '' } = req.params as {
+      index: string;
+      data_source_id?: string;
+    };
+    const query = req.body as {};
+
+    // Append a dummy search pipeline config to derive the
+    // input to the search request processor
+    const finalQuery = {
+      ...query,
+      search_pipeline: {
+        request_processors: [
+          {
+            filter_query: {
+              query: {
+                term: {
+                  visibility: 'public',
+                },
+              },
+            },
+          },
+        ],
+      } as SearchPipelineConfig,
+    };
+    try {
+      const callWithRequest = getClientBasedOnDataSource(
+        context,
+        this.dataSourceEnabled,
+        req,
+        data_source_id,
+        this.client
+      );
+
+      const response = (await callWithRequest('search', {
+        index,
+        body: finalQuery,
+        verbose_pipeline: true,
+      })) as SearchResponseVerbose;
+      return res.ok({ body: getParsedQueryFromResponse(response) });
     } catch (err: any) {
       return generateCustomError(res, err);
     }

@@ -137,6 +137,37 @@ export const searchIndex = createAsyncThunk(
   }
 );
 
+export const getParsedQuery = createAsyncThunk(
+  SEARCH_INDEX_ACTION,
+  async (
+    {
+      query,
+      index,
+      dataSourceId,
+    }: {
+      query: any;
+      index: string;
+      dataSourceId?: string;
+    },
+    { rejectWithValue }
+  ) => {
+    const response:
+      | any
+      | HttpFetchError = await getRouteService().getParsedQuery(
+      query,
+      index,
+      dataSourceId
+    );
+    if (response instanceof HttpFetchError) {
+      return rejectWithValue(
+        'Error getting parsed query: ' + response.body.message
+      );
+    } else {
+      return response;
+    }
+  }
+);
+
 export const ingest = createAsyncThunk(
   INGEST_ACTION,
   async (

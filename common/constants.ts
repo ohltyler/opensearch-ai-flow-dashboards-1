@@ -48,6 +48,7 @@ export const CAT_INDICES_NODE_API_PATH = `${BASE_OPENSEARCH_NODE_API_PATH}/catIn
 export const GET_MAPPINGS_NODE_API_PATH = `${BASE_OPENSEARCH_NODE_API_PATH}/mappings`;
 export const GET_INDEX_NODE_API_PATH = `${BASE_OPENSEARCH_NODE_API_PATH}/getIndex`;
 export const SEARCH_INDEX_NODE_API_PATH = `${BASE_OPENSEARCH_NODE_API_PATH}/search`;
+export const GET_PARSED_QUERY_NODE_API_PATH = `${BASE_OPENSEARCH_NODE_API_PATH}/getParsedQuery`;
 export const INGEST_NODE_API_PATH = `${BASE_OPENSEARCH_NODE_API_PATH}/ingest`;
 export const BULK_NODE_API_PATH = `${BASE_OPENSEARCH_NODE_API_PATH}/bulk`;
 export const SIMULATE_PIPELINE_NODE_API_PATH = `${BASE_OPENSEARCH_NODE_API_PATH}/simulatePipeline`;
@@ -320,6 +321,15 @@ export const TERM_QUERY_TEXT = {
     },
   },
 };
+export const MATCH_QUERY_TEXT = {
+  query: {
+    match: {
+      [TEXT_FIELD_PATTERN]: {
+        query: QUERY_TEXT_PATTERN,
+      },
+    },
+  },
+};
 export const KNN_QUERY = {
   _source: {
     excludes: [VECTOR_FIELD_PATTERN],
@@ -468,6 +478,10 @@ export const QUERY_PRESETS = [
   {
     name: 'Term',
     query: customStringify(TERM_QUERY_TEXT),
+  },
+  {
+    name: 'Match',
+    query: customStringify(MATCH_QUERY_TEXT),
   },
   {
     name: 'Basic k-NN',

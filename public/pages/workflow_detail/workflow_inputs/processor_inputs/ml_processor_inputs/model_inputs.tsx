@@ -43,7 +43,12 @@ import {
   SelectWithCustomOptions,
   BooleanField,
 } from '../../input_fields';
-import { AppState, getMappings, useAppDispatch } from '../../../../../store';
+import {
+  AppState,
+  getMappings,
+  getParsedQuery,
+  useAppDispatch,
+} from '../../../../../store';
 import {
   getDataSourceId,
   parseModelInputs,
@@ -150,23 +155,38 @@ export function ModelInputs(props: ModelInputsProps) {
   }, [values?.ingest?.docs]);
   useEffect(() => {
     try {
-      const queryObjKeys = Object.keys(
-        flattie(JSON.parse(values.search.request))
-      );
-      if (queryObjKeys.length > 0) {
-        setQueryFields(
-          queryObjKeys.map((key) => {
-            return {
-              label:
-                // ingest inputs can handle dot notation, and hence don't need
-                // sanitizing to handle JSONPath edge cases. The other contexts
-                // only support JSONPath, and hence need some post-processing/sanitizing.
-                props.context === PROCESSOR_CONTEXT.INGEST
-                  ? key
-                  : sanitizeJSONPath(key),
-            };
+      // TODO: can only do verbose check on datasources >= 2.19 make sure to check this.
+      if (
+        !isEmpty(JSON.parse(values.search.request)) &&
+        !isEmpty(values.search.index.name)
+      ) {
+        dispatch(
+          getParsedQuery({
+            query: JSON.parse(values.search.request),
+            index: values.search.index.name,
+            dataSourceId,
           })
-        );
+        )
+          .then((resp) => {
+            const parsedQuery = resp.payload;
+            const parsedQueryObjKeys = Object.keys(flattie(parsedQuery));
+            if (parsedQueryObjKeys.length > 0) {
+              setQueryFields(
+                parsedQueryObjKeys.map((key) => {
+                  return {
+                    label:
+                      // ingest inputs can handle dot notation, and hence don't need
+                      // sanitizing to handle JSONPath edge cases. The other contexts
+                      // only support JSONPath, and hence need some post-processing/sanitizing.
+                      props.context === PROCESSOR_CONTEXT.INGEST
+                        ? key
+                        : sanitizeJSONPath(key),
+                  };
+                })
+              );
+            }
+          })
+          .catch((err) => {});
       }
     } catch {}
   }, [values?.search?.request]);

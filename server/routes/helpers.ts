@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { get } from 'lodash';
 import {
   Connector,
   ConnectorDict,
@@ -18,6 +19,7 @@ import {
   ModelOutput,
   NO_MODIFICATIONS_FOUND_TEXT,
   SearchHit,
+  SearchResponseVerbose,
   WORKFLOW_RESOURCE_TYPE,
   WORKFLOW_STATE,
   Workflow,
@@ -210,4 +212,21 @@ export function getResourcesCreatedFromResponse(
     });
   }
   return finalResources;
+}
+
+// Extract the parsed / translated query from a verbose pipeline search response
+export function getParsedQueryFromResponse(
+  response: SearchResponseVerbose
+): {} {
+  const fullResponse = get(response, 'processor_results.0.input_data', {}) as {
+    verbose_pipeline?: boolean;
+    search_pipeline?: {};
+  };
+  // deleting the unnecessary fields that were added on in order to fetch the
+  // parsed / translated query.
+  // verbose_pipeline needed to fetch the search processor inputs, and
+  // search_pipeline needed to pass a dummy search pipeline.
+  delete fullResponse.verbose_pipeline;
+  delete fullResponse.search_pipeline;
+  return fullResponse;
 }

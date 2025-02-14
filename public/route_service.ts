@@ -29,6 +29,7 @@ import {
   SEARCH_PIPELINE_NODE_API_PATH,
   INGEST_PIPELINE_NODE_API_PATH,
   GET_INDEX_NODE_API_PATH,
+  GET_PARSED_QUERY_NODE_API_PATH,
 } from '../common';
 
 /**
@@ -109,6 +110,11 @@ export interface RouteService {
     searchPipeline?: string;
     verbose?: boolean;
   }) => Promise<any | HttpFetchError>;
+  getParsedQuery: (
+    query: any,
+    index: string,
+    dataSourceId?: string
+  ) => Promise<any | HttpFetchError>;
   ingest: (
     index: string,
     doc: {},
@@ -365,6 +371,20 @@ export function configureRoutes(core: CoreStart): RouteService {
             verbose: verbose ?? false,
             data_source_version: dataSourceVersion,
           },
+        });
+        return response;
+      } catch (e: any) {
+        return e as HttpFetchError;
+      }
+    },
+    getParsedQuery: async (query, index, dataSourceId) => {
+      try {
+        const url = dataSourceId
+          ? `${BASE_NODE_API_PATH}/${dataSourceId}/opensearch/getParsedQuery`
+          : GET_PARSED_QUERY_NODE_API_PATH;
+        const path = `${url}/${index}`;
+        const response = await core.http.post<{ respString: string }>(path, {
+          body: JSON.stringify(query),
         });
         return response;
       } catch (e: any) {
