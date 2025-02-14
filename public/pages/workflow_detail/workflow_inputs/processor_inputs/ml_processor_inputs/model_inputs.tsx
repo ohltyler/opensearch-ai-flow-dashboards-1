@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import semver from 'semver';
 import { useFormikContext, getIn, Field, FieldProps } from 'formik';
 import { isEmpty, isEqual } from 'lodash';
 import { useSelector } from 'react-redux';
@@ -37,6 +38,7 @@ import {
   getCharacterLimitedString,
   ModelInputFormField,
   INPUT_TRANSFORM_OPTIONS,
+  MINIMUM_FULL_SUPPORTED_VERSION,
 } from '../../../../../../common';
 import {
   TextField,
@@ -51,6 +53,7 @@ import {
 } from '../../../../../store';
 import {
   getDataSourceId,
+  getEffectiveVersion,
   parseModelInputs,
   sanitizeJSONPath,
 } from '../../../../../utils';
@@ -75,6 +78,21 @@ const VALUE_FLEX_RATIO = 4;
 export function ModelInputs(props: ModelInputsProps) {
   const dispatch = useAppDispatch();
   const dataSourceId = getDataSourceId();
+  const [dataSourceVersion, setDataSourceVersion] = useState<
+    string | undefined
+  >(undefined);
+  useEffect(() => {
+    async function getVersion() {
+      if (dataSourceId !== undefined) {
+        setDataSourceVersion(await getEffectiveVersion(dataSourceId));
+      }
+    }
+    getVersion();
+  }, [dataSourceId]);
+  const isPreV219 =
+    dataSourceVersion !== undefined
+      ? semver.lt(dataSourceVersion, MINIMUM_FULL_SUPPORTED_VERSION)
+      : false;
   const { models } = useSelector((state: AppState) => state.ml);
   const indices = useSelector((state: AppState) => state.opensearch.indices);
   const {
@@ -155,38 +173,58 @@ export function ModelInputs(props: ModelInputsProps) {
   }, [values?.ingest?.docs]);
   useEffect(() => {
     try {
-      // TODO: can only do verbose check on datasources >= 2.19 make sure to check this.
       if (
         !isEmpty(JSON.parse(values.search.request)) &&
         !isEmpty(values.search.index.name)
       ) {
-        dispatch(
-          getParsedQuery({
-            query: JSON.parse(values.search.request),
-            index: values.search.index.name,
-            dataSourceId,
-          })
-        )
-          .then((resp) => {
-            const parsedQuery = resp.payload;
-            const parsedQueryObjKeys = Object.keys(flattie(parsedQuery));
-            if (parsedQueryObjKeys.length > 0) {
-              setQueryFields(
-                parsedQueryObjKeys.map((key) => {
-                  return {
-                    label:
-                      // ingest inputs can handle dot notation, and hence don't need
-                      // sanitizing to handle JSONPath edge cases. The other contexts
-                      // only support JSONPath, and hence need some post-processing/sanitizing.
-                      props.context === PROCESSOR_CONTEXT.INGEST
-                        ? key
-                        : sanitizeJSONPath(key),
-                  };
-                })
-              );
-            }
-          })
-          .catch((err) => {});
+        if (isPreV219) {
+          const queryObjKeys = Object.keys(
+            flattie(JSON.parse(values.search.request))
+          );
+          if (queryObjKeys.length > 0) {
+            setQueryFields(
+              queryObjKeys.map((key) => {
+                return {
+                  label:
+                    // ingest inputs can handle dot notation, and hence don't need
+                    // sanitizing to handle JSONPath edge cases. The other contexts
+                    // only support JSONPath, and hence need some post-processing/sanitizing.
+                    props.context === PROCESSOR_CONTEXT.INGEST
+                      ? key
+                      : sanitizeJSONPath(key),
+                };
+              })
+            );
+          }
+        } else {
+          dispatch(
+            getParsedQuery({
+              query: JSON.parse(values.search.request),
+              index: values.search.index.name,
+              dataSourceId,
+            })
+          )
+            .then((resp) => {
+              const parsedQuery = resp.payload;
+              const parsedQueryObjKeys = Object.keys(flattie(parsedQuery));
+              if (parsedQueryObjKeys.length > 0) {
+                setQueryFields(
+                  parsedQueryObjKeys.map((key) => {
+                    return {
+                      label:
+                        // ingest inputs can handle dot notation, and hence don't need
+                        // sanitizing to handle JSONPath edge cases. The other contexts
+                        // only support JSONPath, and hence need some post-processing/sanitizing.
+                        props.context === PROCESSOR_CONTEXT.INGEST
+                          ? key
+                          : sanitizeJSONPath(key),
+                    };
+                  })
+                );
+              }
+            })
+            .catch((err) => {});
+        }
       }
     } catch {}
   }, [values?.search?.request]);
