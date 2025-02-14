@@ -514,7 +514,7 @@ export function ConfigureExpressionModal(props: ConfigureExpressionModalProps) {
                                                 query
                                               )
                                             ),
-                                            index: values.search.index.name,
+                                            index: values?.search?.index?.name,
                                             dataSourceId,
                                           })
                                         )
@@ -522,11 +522,15 @@ export function ConfigureExpressionModal(props: ConfigureExpressionModalProps) {
                                             setSourceInput(
                                               customStringify(resp.payload)
                                             );
+                                            setIsFetching(false);
                                           })
-                                          .catch((err) => {});
+                                          .catch((err) => {
+                                            setIsFetching(false);
+                                          });
                                       } catch {
                                         () => {
                                           console.error('Error fetching input');
+                                          setIsFetching(false);
                                         };
                                       }
                                     }

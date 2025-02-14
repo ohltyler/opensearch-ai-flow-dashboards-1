@@ -53,13 +53,16 @@ import {
   generateTransform,
   getDataSourceId,
   getInitialValue,
+  getIsPreV219,
   getPlaceholdersFromQuery,
   injectParameters,
   prepareDocsForSimulate,
   unwrapTransformedDocs,
+  useDataSourceVersion,
 } from '../../../../../../utils';
 import { TextField } from '../../../input_fields';
 import {
+  getParsedQuery,
   searchIndex,
   simulatePipeline,
   useAppDispatch,
@@ -102,6 +105,8 @@ const PROMPT_EDITOR_ID = 'promptEditor';
 export function ConfigureTemplateModal(props: ConfigureTemplateModalProps) {
   const dispatch = useAppDispatch();
   const dataSourceId = getDataSourceId();
+  const dataSourceVersion = useDataSourceVersion(dataSourceId);
+  const isPreV219 = getIsPreV219(dataSourceVersion);
   const { values, setFieldValue, setFieldTouched } = useFormikContext<
     WorkflowFormValues
   >();
@@ -725,10 +730,42 @@ export function ConfigureTemplateModal(props: ConfigureTemplateModalProps) {
                                   // this if check as an extra layer of checking, and if mechanism for gating
                                   // this is changed in the future.
                                   if (curSearchPipeline === undefined) {
-                                    setSourceInput(
-                                      injectParameters(queryParams, query)
-                                    );
+                                    if (isPreV219) {
+                                      setSourceInput(
+                                        injectParameters(queryParams, query)
+                                      );
+                                    } else {
+                                      try {
+                                        dispatch(
+                                          getParsedQuery({
+                                            query: JSON.parse(
+                                              injectParameters(
+                                                queryParams,
+                                                query
+                                              )
+                                            ),
+                                            index: values?.search?.index?.name,
+                                            dataSourceId,
+                                          })
+                                        )
+                                          .then((resp) => {
+                                            setSourceInput(
+                                              customStringify(resp.payload)
+                                            );
+                                            setIsFetching(false);
+                                          })
+                                          .catch((err) => {
+                                            setIsFetching(false);
+                                          });
+                                      } catch {
+                                        () => {
+                                          console.error('Error fetching input');
+                                          setIsFetching(false);
+                                        };
+                                      }
+                                    }
                                   }
+
                                   setIsFetching(false);
                                   break;
                                 }
