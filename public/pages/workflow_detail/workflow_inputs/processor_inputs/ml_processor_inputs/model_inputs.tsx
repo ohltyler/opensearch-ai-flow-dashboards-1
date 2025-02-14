@@ -4,7 +4,6 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import semver from 'semver';
 import { useFormikContext, getIn, Field, FieldProps } from 'formik';
 import { isEmpty, isEqual } from 'lodash';
 import { useSelector } from 'react-redux';
@@ -38,7 +37,6 @@ import {
   getCharacterLimitedString,
   ModelInputFormField,
   INPUT_TRANSFORM_OPTIONS,
-  MINIMUM_FULL_SUPPORTED_VERSION,
 } from '../../../../../../common';
 import {
   TextField,
@@ -53,9 +51,10 @@ import {
 } from '../../../../../store';
 import {
   getDataSourceId,
-  getEffectiveVersion,
+  getIsPreV219,
   parseModelInputs,
   sanitizeJSONPath,
+  useDataSourceVersion,
 } from '../../../../../utils';
 import { ConfigureExpressionModal, ConfigureTemplateModal } from './modals/';
 
@@ -78,21 +77,8 @@ const VALUE_FLEX_RATIO = 4;
 export function ModelInputs(props: ModelInputsProps) {
   const dispatch = useAppDispatch();
   const dataSourceId = getDataSourceId();
-  const [dataSourceVersion, setDataSourceVersion] = useState<
-    string | undefined
-  >(undefined);
-  useEffect(() => {
-    async function getVersion() {
-      if (dataSourceId !== undefined) {
-        setDataSourceVersion(await getEffectiveVersion(dataSourceId));
-      }
-    }
-    getVersion();
-  }, [dataSourceId]);
-  const isPreV219 =
-    dataSourceVersion !== undefined
-      ? semver.lt(dataSourceVersion, MINIMUM_FULL_SUPPORTED_VERSION)
-      : false;
+  const dataSourceVersion = useDataSourceVersion(dataSourceId);
+  const isPreV219 = getIsPreV219(dataSourceVersion);
   const { models } = useSelector((state: AppState) => state.ml);
   const indices = useSelector((state: AppState) => state.opensearch.indices);
   const {
